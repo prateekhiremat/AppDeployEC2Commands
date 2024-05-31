@@ -1,0 +1,121 @@
+sudo su -
+cd /
+
+Step 1: Install NodeJS and NPM using nvm
+1. Install node version manager (nvm) by typing the following at the command line:
+   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
+
+2. Activate nvm by typing the following at the command line:
+   . ~/.nvm/nvm.sh
+
+3. Use nvm to install the latest version of Node.js by typing the following at the command line:
+   nvm install node
+
+Step 2: Clone repository from GitHub
+1. Clone the code repository from Github:
+   git clone https://github.com/prateekhiremat/AllFundooNotes.git
+
+2. Get inside the directory and Install Packages:
+   cd /AllFundooNotes/fundooNotesProject
+   npm install
+
+Step 3: Install MongoDB
+1. Install the prerequisite packages needed during the installation:
+   sudo apt install software-properties-common gnupg apt-transport-https ca-certificates -y
+
+2. Import the public key for MongoDB:
+   curl -fsSL https://pgp.mongodb.com/server-7.0.asc |  sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
+
+sudo apt update
+
+3. Install the mongodb-org meta-package that provides MongoDB:
+   sudo apt install mongodb-org -y
+
+4. To start the MongoDB service, execute the command:
+   sudo systemctl start mongod
+
+5. Once again, confirm if the service is running:
+   sudo systemctl status mongod
+
+6. Enable MongoDB to start:
+   sudo systemctl enable mongod
+
+Step 4: Install Redis
+1. To install Redis:
+   sudo apt install redis-server -y
+
+2. Configuration change in the default configuration file:
+   sudo nano /etc/redis/redis.conf
+   Changes: supervised no --> supervised systemd
+
+3. Start the Redis server:
+   sudo systemctl restart redis
+
+4. Redis service status:
+   sudo systemctl status  redis
+
+5. Enable Redis to start:
+   sudo systemctl enable --now redis-server
+
+Step 5: Install Kafka(optional):
+1. Install Java:
+   sudo apt install default-jdk
+
+2. Download Apache Kafka:
+   wget https://downloads.apache.org/kafka/3.7.0/kafka_2.13-3.7.0.tgz
+
+3. Extract Kafka Archive:
+   tar -xzf kafka_2.13-3.7.0.tgz
+
+4. Move Kafka Files:
+   sudo mv kafka_2.13-3.1.0 /opt/kafka
+
+5. Edit .bashrc:
+   nano ~/.bashrc
+
+6. Set Kafka Path: Add the following line to the end of the file:
+   export PATH=/opt/kafka/bin:$PATH
+
+7. Reload .bashrc:
+   source ~/.bashrc
+
+8. Changes has to be made in: nano /opt/kafka/kafka-server-start.sh
+   if [ "x$KAFKA_HEAP_OPTS" = "x" ]; then
+      export KAFKA_HEAP_OPTS="-Xmx1G -Xms1G"
+   fi
+change it to
+   if [ "x$KAFKA_HEAP_OPTS" = "x" ]; then
+      export KAFKA_HEAP_OPTS="-Xmx256M -Xms128M"
+   fi
+
+9. Start ZooKeeper:
+   bin/zookeeper-server-start.sh config/zookeeper.properties
+
+10. Start Kafka Server:
+   cd /opt/kafka
+   bin/kafka-server-start.sh config/server.properties
+
+Step 6: Run manually:
+cd /AllFundooNotes/fundooNotesProject
+npm run dev
+
+Step 7: To Achive Daemon Process:
+1. Create .service file in: cd etc/systemd/system/
+   nano fundoo.service
+   write:
+        [Unit]
+        Description=Note Service
+        After=network.target
+        [Service]
+        User=ubuntu
+        Group=ubuntu
+        ExecStart=/bin/bash -c "cd /AllFundooNotes/fundooNotesProject/ && npm run dev"
+        WorkingDirectory=/AllFundooNotes/fundooNotesProject
+        [Install]
+        WantedBy=multi-user.target
+
+2. Execute the commands:
+   sudo systemctl daemon-reload
+   sudo systemctl enable fundoo.service
+   sudo systemctl start fundoo.service
+   sudo systemctl status fundoo.service
